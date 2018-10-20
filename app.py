@@ -2,6 +2,8 @@ import flask
 import requests_cache
 import time
 import appdirs
+import os
+from flask import request, jsonify
 from newspaper import Article
 from urllib.parse import urlparse
 from htmlTagsExtractor import extract_tags
