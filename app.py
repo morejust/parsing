@@ -7,6 +7,7 @@ from flask import request, jsonify
 from newspaper import Article
 
 from htmlTagsExtractor import extract_tags
+from factsExtractor import extract_facts
 from googleApiSentiment import get_sentiments
 from flask_cors import CORS
 __program__ = 'google_cache'
@@ -40,14 +41,13 @@ def parse():
     if "clear_cache" in query_parameters:
         if query_parameters.get('clear_cache')=='1':
             requests_cache.clear()
-            #print("It's clearing 1!\n")
     try:
         a = Article(url, keep_article_html=True)
         a.download()
         a.parse()
         a.nlp()
 
-        return  jsonify({
+        return jsonify({
             "author": ", ".join(a.authors),
             "source": a.source_url[a.source_url.find("//") + 2:].split("/")[0],
             "title": a.title,
@@ -61,17 +61,19 @@ def parse():
         })
     except Exception as e:
         print(e)
-        return jsonify({ 'error': True, 'description': "'%s' parsing went wrong with error: '%s'" % (url, e)})
+        return jsonify({
+            'error': True, 
+            'description': "'%s' parsing went wrong with error: '%s'" % (url, e)
+        })
 
 @app.route('/analyse', methods=['POST'])
 def analyse():
-
     # query_parameters = request.args
     # if "clear_cache" in query_parameters:
     #     if query_parameters.get('clear_cache')=='1':
     #         requests_cache.clear()
     #         print("It's clearing 2 !\n")
-    url = "" #query_parameters.get('url')
+    url = ""  # query_parameters.get('url')
     jso = request.json
     result = { 'url': url, 'error': False , 'post':jso}
 
@@ -85,6 +87,8 @@ def analyse():
         tags, raw_text = extract_tags(result['post']["html"])
         result['html'] = tags
         result['post']['text'] = raw_text
+
+        result['checkFacts'] = extract_facts(result['post'])
 
         result['entities'] = get_sentiments(raw_text)
 
@@ -114,7 +118,6 @@ def source_articles():
         result["error"] = True
         result["description"] = e
     return jsonify(result)
-
 
 
 if __name__ == "__main__":
