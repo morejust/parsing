@@ -20,11 +20,10 @@ def extract_facts(post):
         if len(substring) < 50:
             break
             
-        result.append({ "offset": offset, "phrase": substring})
+        result.append({ "offset": offset, "content": substring })
 
         summary = summary.replace(substring, "")    
         if len(summary) < 70:
             break
 
-        print({"offset": offset, "phrase": substring})
     return result
