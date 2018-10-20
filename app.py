@@ -73,13 +73,12 @@ def analyse():
     #     if query_parameters.get('clear_cache')=='1':
     #         requests_cache.clear()
     #         print("It's clearing 2 !\n")
+
+    # TODO: Allow to pass the url and perform /parse and /analyse at the same time.
+
     url = ""  # query_parameters.get('url')
     jso = request.json
     result = { 'url': url, 'error': False , 'post':jso}
-
-    # result['post']['html'] = jso['html']
-    # result['post']['text'] = jso['text']
-
     try:
         before = time.ctime(int(time.time()))
         #result['post'] = parse(url)
@@ -89,7 +88,6 @@ def analyse():
         result['post']['text'] = raw_text
 
         result['checkFacts'] = extract_facts(result['post'])
-
         result['entities'] = get_sentiments(raw_text)
 
         after = time.ctime(int(time.time()))
