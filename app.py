@@ -39,7 +39,7 @@ def parse():
     query_parameters = request.args
     url = query_parameters.get('url')
     if "clear_cache" in query_parameters:
-        if query_parameters.get('clear_cache')=='1':
+        if query_parameters.get('clear_cache') == '1':
             requests_cache.clear()
     try:
         a = Article(url, keep_article_html=True)
