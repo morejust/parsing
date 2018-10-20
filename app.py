@@ -35,6 +35,10 @@ def home():
 def parse():
     query_parameters = request.args
     url = query_parameters.get('url')
+    if "clear_cache" in query_parameters:
+        if query_parameters.get('clear_cache')=='1':
+            requests_cache.clear()
+            #print("It's clearing 1!\n")
     try:
         a = Article(url, keep_article_html=True)
         a.download()
@@ -60,7 +64,11 @@ def parse():
 @app.route('/analyse', methods=['POST'])
 def analyse():
 
-    #query_parameters = request.args
+    # query_parameters = request.args
+    # if "clear_cache" in query_parameters:
+    #     if query_parameters.get('clear_cache')=='1':
+    #         requests_cache.clear()
+    #         print("It's clearing 2 !\n")
     url = "" #query_parameters.get('url')
     jso = request.json
     result = { 'url': url, 'error': False , 'post':jso}
