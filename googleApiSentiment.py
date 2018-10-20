@@ -34,6 +34,7 @@ def extract_entity_features(entity):
     features["salience"] = entity.salience.real
     features["sentiment"] = entity.sentiment.score.real
     features["magnitude"] = entity.sentiment.magnitude.real
+    features["type"] = "sentiment"
 
     features['mentions'] = []
     for mention in entity.mentions:
