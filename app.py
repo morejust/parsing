@@ -11,7 +11,7 @@ app.config["DEBUG"] = True
 @app.route('/', methods=['GET'])
 def home():
     return '''<h1>AI is working!</h1>
-<p>Move your ass and cal the /parse method with 'url' param.</p>'''
+<p>Move your ass and cal the /analyse method with 'url' param.</p>'''
 
 def parse(url):
     try:
