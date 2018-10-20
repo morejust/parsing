@@ -1,10 +1,13 @@
 import flask
+import requests_cache
 from flask import request, jsonify
 from newspaper import Article
 
 from htmlTagsExtractor import extract_tags
 from googleApiSentiment import get_sentiments
 from flask_cors import CORS
+
+requests_cache.install_cache(cache_name='google_api_cache', backend='sqlite', expire_after=180)
 
 app = flask.Flask(__name__)
 
