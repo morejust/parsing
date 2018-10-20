@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 google_api_cred.json
 google_api_cache.db
+.idea/workspace.xml

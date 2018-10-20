@@ -1,12 +1,14 @@
 import flask
 import requests_cache
 import time,appdirs,os
-from flask import request, jsonify
+from flask import request
+from flask import jsonify
 from newspaper import Article
-
+from urllib.parse import urlparse
 from htmlTagsExtractor import extract_tags
 from googleApiSentiment import get_sentiments
 from flask_cors import CORS
+import csv
 __program__ = 'google_cache'
 
 # determine platform-specific user cache directory
@@ -25,6 +27,14 @@ app = flask.Flask(__name__)
 
 CORS(app)
 
+fakes=[]
+with open('./data/fakes.csv', 'r') as f:
+    reader = csv.reader(f)
+    for row in reader:
+        # print(row[0])
+        fakes.append(str(row[0]))
+
+
 app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET'])
@@ -33,6 +43,7 @@ def home():
 
 @app.route('/parse', methods=['GET'])
 def parse():
+    print(fakes)
     query_parameters = request.args
     url = query_parameters.get('url')
     if "clear_cache" in query_parameters:
@@ -45,7 +56,7 @@ def parse():
         a.parse()
         a.nlp()
 
-        return  jsonify({
+        return jsonify({
             "author": ", ".join(a.authors),
             "source": a.source_url[a.source_url.find("//") + 2:].split("/")[0],
             "title": a.title,
@@ -63,37 +74,48 @@ def parse():
 
 @app.route('/analyse', methods=['POST'])
 def analyse():
-
+    fake=False
     # query_parameters = request.args
     # if "clear_cache" in query_parameters:
     #     if query_parameters.get('clear_cache')=='1':
     #         requests_cache.clear()
     #         print("It's clearing 2 !\n")
-    url = "" #query_parameters.get('url')
+    # query_parameters.get('url')
     jso = request.json
-    result = { 'url': url, 'error': False , 'post':jso}
+    url = jso['url']
+    result = {'url': url, 'error': False, 'post': jso, 'fake': False}
 
     # result['post']['html'] = jso['html']
     # result['post']['text'] = jso['text']
 
     try:
         before = time.ctime(int(time.time()))
-        #result['post'] = parse(url)
-
+        # from urlparse import urlparse  # Python 2
+        parsed_uri = urlparse(url)
+        # site = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+        site = '{uri.netloc}'.format(uri=parsed_uri)
+        # print(fakes)
+        # print(str(site),"Habelni")
+        for site1 in fakes:
+            # print(site1)
+            if site1==site:
+                # print("Ijo de python")
+                fake=True
         tags, raw_text = extract_tags(result['post']["html"])
         result['html'] = tags
         result['post']['text'] = raw_text
-
+        result["fake"] = fake
         result['entities'] = get_sentiments(raw_text)
 
         after = time.ctime(int(time.time()))
 
-        print("Time: {0} / Used Cache: {1}".format(before, after))
+        print("Start: {0} / End: {1}".format(before, after))
 
     except Exception as e:
         print(e)
         result["error"] = True
         result["description"] = e
+
     return jsonify(result)
 
 @app.route('/sourceArticles', methods=['GET'])
