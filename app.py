@@ -1,6 +1,8 @@
 import flask
 import requests_cache
-import time,appdirs,os
+import time
+import appdirs
+import os
 from flask import request, jsonify
 from newspaper import Article
 
