@@ -17,13 +17,13 @@ def extract_facts(post):
         offset, substring = find_longest_substring(text, summary)
         if offset is None:
             break
-        if len(substring) < 20:
+        if len(substring) < 50:
             break
             
         result.append({ "offset": offset, "phrase": substring})
 
         summary = summary.replace(substring, "")    
-        if len(summary) < 50:
+        if len(summary) < 70:
             break
 
         print({"offset": offset, "phrase": substring})
