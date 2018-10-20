@@ -4,8 +4,12 @@ from newspaper import Article
 
 from htmlTagsExtractor import extract_tags
 from googleApiSentiment import get_sentiments
+from flask_cors import CORS
 
 app = flask.Flask(__name__)
+
+CORS(app)
+
 app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET'])
@@ -44,7 +48,7 @@ def analyse():
 
     try:
         result['post'] = parse(url)
-        
+
         tags, raw_text = extract_tags(result['post']["html"])
         result['html'] = tags
         result['post']['text'] = raw_text
