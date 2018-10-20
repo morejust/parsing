@@ -1,11 +1,11 @@
 import flask
 import requests_cache
-import time,appdirs,os
-from flask import request
-from flask import jsonify
+import time
+import appdirs
 from newspaper import Article
 from urllib.parse import urlparse
 from htmlTagsExtractor import extract_tags
+from factsExtractor import extract_facts
 from googleApiSentiment import get_sentiments
 from flask_cors import CORS
 import csv
@@ -47,9 +47,8 @@ def parse():
     query_parameters = request.args
     url = query_parameters.get('url')
     if "clear_cache" in query_parameters:
-        if query_parameters.get('clear_cache')=='1':
+        if query_parameters.get('clear_cache') == '1':
             requests_cache.clear()
-            #print("It's clearing 1!\n")
     try:
         a = Article(url, keep_article_html=True)
         a.download()
@@ -70,32 +69,27 @@ def parse():
         })
     except Exception as e:
         print(e)
-        return jsonify({ 'error': True, 'description': "'%s' parsing went wrong with error: '%s'" % (url, e)})
+        return jsonify({
+            'error': True, 
+            'description': "'%s' parsing went wrong with error: '%s'" % (url, e)
+        })
 
 @app.route('/analyse', methods=['POST'])
 def analyse():
     fake=False
-    # query_parameters = request.args
-    # if "clear_cache" in query_parameters:
-    #     if query_parameters.get('clear_cache')=='1':
-    #         requests_cache.clear()
-    #         print("It's clearing 2 !\n")
-    # query_parameters.get('url')
     jso = request.json
     url = jso['url']
     result = {'url': url, 'error': False, 'post': jso, 'fake': False}
 
-    # result['post']['html'] = jso['html']
-    # result['post']['text'] = jso['text']
-
+    # TODO: Allow to pass the url and perform /parse and /analyse at the same time.
+    jso = request.json
+    result = { 'url': url, 'error': False , 'post':jso}
     try:
         before = time.ctime(int(time.time()))
-        # from urlparse import urlparse  # Python 2
         parsed_uri = urlparse(url)
-        # site = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
         site = '{uri.netloc}'.format(uri=parsed_uri)
-        # print(fakes)
-        # print(str(site),"Habelni")
+        print(fakes)
+        print(str(site),"Habelni")
         for site1 in fakes:
             # print(site1)
             if site1==site:
@@ -105,6 +99,7 @@ def analyse():
         result['html'] = tags
         result['post']['text'] = raw_text
         result["fake"] = fake
+        result['checkFacts'] = extract_facts(result['post'])
         result['entities'] = get_sentiments(raw_text)
 
         after = time.ctime(int(time.time()))
@@ -134,7 +129,6 @@ def source_articles():
         result["error"] = True
         result["description"] = e
     return jsonify(result)
-
 
 
 if __name__ == "__main__":
