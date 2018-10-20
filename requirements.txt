@@ -2,3 +2,4 @@ flask
 flask-cors
 newspaper3k
 google-cloud-language
+appdirs

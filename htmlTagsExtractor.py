@@ -1,34 +1,40 @@
-from html.parser import HTMLParser
+import re
 
-class MyHTMLParser(HTMLParser):
-    def _my_hack_init(self, text):
-        self.text = text
-        self.prepared_text = ''
-        self.html_tags_offsets = []
-        self.raw_text = ''
-        self.prev_text_end = 0
-    
-    def handle_data(self, data):
-        
-        text_start = self.getpos()[1]
-        text_end = text_start + len(data)
-        
-        # TODO: there are some encoding problem, try to parse this:
-        # https://wiki.swap.online/decentralized-exchange-of-bitcoins-for-altcoins-right-in-the-browser-live-demo
-        # if self.text[text_start: text_end] != data:
-        #     print(self.text[text_start: text_end], '|||', data)
-        #     print((len(self.raw_text), self.text[self.prev_text_end: text_start]))
-        #     print()
-        
-        self.html_tags_offsets.append((len(self.raw_text), self.text[self.prev_text_end: text_start]))
-        self.prev_text_end = text_end
-        self.raw_text += self.text[text_start: text_end]  # can't use 'data' - encoding problem
+def merge_tags(html_tags_offsets):
+    merged = []
+    done_offsets = []
+    for t1 in html_tags_offsets:
+        if t1[0] in done_offsets:
+            continue
+        tags_with_same_offset = [t for o, t in html_tags_offsets if o == t1[0]]
+        new_tag = "".join(tags_with_same_offset)
+        merged.append((t1[0], new_tag))  
+        done_offsets.append(t1[0])
+    return merged
 
 def extract_tags(html_string):
-    # removing '\n', '\t', '  '
-    html_string = ' '.join(html_string.split())
+    raw_text = ""
+    length_of_cutted_tokens = 0
+    end_of_prev_token = 0
+    html_tags_offsets = []
+    for match in re.finditer('<.*?>', html_string):
+        s, e, g = match.start(), match.end(), match.group()
 
-    parser = MyHTMLParser()
-    parser._my_hack_init(html_string)
-    parser.feed(html_string)
-    return (parser.html_tags_offsets, parser.raw_text)
+        token = html_string[s: e]
+        raw_text += html_string[end_of_prev_token: s] + ' '
+        html_tags_offsets.append((len(raw_text), g))
+
+        end_of_prev_token = match.end()
+        length_of_cutted_tokens += len(token)
+
+    html_tags_offsets = merge_tags(html_tags_offsets)
+
+    return (html_tags_offsets, raw_text)
+
+
+def insert_tags(html_tags_offsets, raw_text):
+    text_with_html = raw_text
+    for offset, tag_text in sorted(html_tags_offsets, key=lambda x: -x[0]):
+        # -1 -> remove space that was added above
+        text_with_html = text_with_html[:offset - 1] + tag_text + text_with_html[offset:]
+    return text_with_html
