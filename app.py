@@ -1,13 +1,25 @@
 import flask
 import requests_cache
+import time,appdirs,os
 from flask import request, jsonify
 from newspaper import Article
 
 from htmlTagsExtractor import extract_tags
 from googleApiSentiment import get_sentiments
 from flask_cors import CORS
+__program__ = 'google_cache'
 
-requests_cache.install_cache(cache_name='google_api_cache', backend='sqlite', expire_after=180)
+# determine platform-specific user cache directory
+cache_dir = appdirs.user_cache_dir(__program__)
+
+# ensure cache directory exists
+os.makedirs(cache_dir, exist_ok=True)
+
+requests_cache.install_cache(
+    cache_name=os.path.join(cache_dir, __program__),expire_after=500000
+)
+#requests_cache.install_cache(cache_name='google_api_cache', backend='sqlite', expire_after=500000)
+#requests_cache.install_cache()
 
 app = flask.Flask(__name__)
 
@@ -17,17 +29,19 @@ app.config["DEBUG"] = True
 
 @app.route('/', methods=['GET'])
 def home():
-    return '''<h1>AI is working!</h1>
-<p>Move your ass and cal the /analyse method with 'url' param.</p>'''
+    return '''<h1>Welcome page!</h1>'''
 
-def parse(url):
+@app.route('/parse', methods=['GET'])
+def parse():
+    query_parameters = request.args
+    url = query_parameters.get('url')
     try:
         a = Article(url, keep_article_html=True)
         a.download()
         a.parse()
         a.nlp()
 
-        return  {
+        return  jsonify({
             "author": ", ".join(a.authors),
             "source": a.source_url[a.source_url.find("//") + 2:].split("/")[0],
             "title": a.title,
@@ -38,25 +52,36 @@ def parse(url):
             "text": a.text,
             "summary": a.summary,
             "keywords": a.keywords,
-        }
+        })
     except Exception as e:
         print(e)
-        return { 'error': True, 'description': "'%s' parsing went wrong with error: '%s'" % (url, e)}
+        return jsonify({ 'error': True, 'description': "'%s' parsing went wrong with error: '%s'" % (url, e)})
 
-@app.route('/analyse', methods=['GET'])
+@app.route('/analyse', methods=['POST'])
 def analyse():
-    query_parameters = request.args
-    url = query_parameters.get('url')
-    result = { 'url': url, 'error': False }
+
+    #query_parameters = request.args
+    url = "" #query_parameters.get('url')
+    jso = request.json
+    result = { 'url': url, 'error': False , 'post':jso}
+
+    # result['post']['html'] = jso['html']
+    # result['post']['text'] = jso['text']
 
     try:
-        result['post'] = parse(url)
+        before = time.ctime(int(time.time()))
+        #result['post'] = parse(url)
 
         tags, raw_text = extract_tags(result['post']["html"])
         result['html'] = tags
         result['post']['text'] = raw_text
 
         result['entities'] = get_sentiments(raw_text)
+
+        after = time.ctime(int(time.time()))
+
+        print("Time: {0} / Used Cache: {1}".format(before, after))
+
     except Exception as e:
         print(e)
         result["error"] = True
