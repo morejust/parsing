@@ -95,7 +95,7 @@ def analyse():
         result['post']['text'] = raw_text
         result['fake'] = check_fake_source(url)
         result['checkFacts'] = extract_facts(result['post'])
-        result['keywords'] = kf.find_keywords(raw_text)
+        result['stopwords'] = kf.find_keywords(raw_text)
 
         result['entities'] = get_sentiments(raw_text)
 
