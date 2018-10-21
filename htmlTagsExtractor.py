@@ -12,9 +12,17 @@ def merge_tags(html_tags_offsets):
         done_offsets.append(t1[0])
     return merged
 
-def extract_tags(html_string):
+def unescape_xml_tags(text):
     # TODO: implement proper XML tags replace 
-    html_string = re.sub("&#?\w+;", "'", html_string)
+    # html_string = re.sub("&#?\w+;", "'", html_string)
+    text = re.sub('&#8217;', "'", text)
+    text = re.sub('&#160;', " ", text)
+    text = re.sub('&#8230;', "…", text)
+    return text
+    
+
+def extract_tags(html_string):
+    html_string = unescape_xml_tags(html_string)
     
     raw_text = ""
     length_of_cutted_tokens = 0
