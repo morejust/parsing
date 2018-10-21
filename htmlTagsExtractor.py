@@ -22,6 +22,7 @@ def extract_tags(html_string):
 
         token = html_string[s: e]
         raw_text += html_string[end_of_prev_token: s] + ' '
+        # TODO: save tags as dict: {'offset': , 'content': , 'type': 'html'}
         html_tags_offsets.append((len(raw_text), g))
 
         end_of_prev_token = match.end()
