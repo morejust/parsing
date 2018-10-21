@@ -2,6 +2,7 @@ import os
 import time
 import flask
 import appdirs
+import requests
 import requests_cache
 
 from flask import request, jsonify
@@ -108,16 +109,19 @@ def analyse():
 
     return jsonify(result)
 
-@app.route('/sourceArticles', methods=['GET'])
+@app.route('/search', methods=['GET'])
 def source_articles():
     query_parameters = request.args
-    source = query_parameters.get('source')
-    if source is None:
-        return jsonify({'error': True, 'description': 'No source provided'})
-    result = { 'source': source, 'error': False, 'acticles': [] }
+    query = query_parameters.get('q')
+
+    if query is None:
+        return jsonify({'error': True, 'description': 'No query'})
+        
+    result = {'q': query, 'error': False, 'url': ''}
     try:
-        source_urls = ['url.com', 'url1.com', 'rul2.com']
-        result['acticles'] = [{'url': u} for u in source_urls]
+        qurl = 'https://newsapi.org/v2/everything?q=%s&from=2018-10-20&to=2018-10-20&sortBy=popularity&apiKey=61b5063e2cdb47d3913945c311932ab3'
+        r = requests.get(qurl % query)
+        result["url"] = r.json()["articles"][0]["url"]
 
     except Exception as e:
         print(e)
