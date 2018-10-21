@@ -118,6 +118,10 @@ def source_articles():
         api_token = '61b5063e2cdb47d3913945c311932ab3'  # key that was taken from mainpage
         qurl = 'https://newsapi.org/v2/everything?q=%s&from=2018-10-20&to=2018-10-20&sortBy=popularity&apiKey=%s'
         r = requests.get(qurl % (query, api_token))
+        if len(r.json()['articles']) == 0:
+            result['error'] = True
+            return jsonify(result)
+            
         article = random.choice(r.json()['articles'])
         result['url'] = article['url']
 
