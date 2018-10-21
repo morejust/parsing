@@ -13,6 +13,9 @@ def merge_tags(html_tags_offsets):
     return merged
 
 def extract_tags(html_string):
+    # TODO: implement proper XML tags replace 
+    html_string = re.sub("&#?\w+;", "'", html_string)
+    
     raw_text = ""
     length_of_cutted_tokens = 0
     end_of_prev_token = 0
