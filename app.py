@@ -20,10 +20,9 @@ cache_dir = appdirs.user_cache_dir(__program__)
 os.makedirs(cache_dir, exist_ok=True)
 
 requests_cache.install_cache(
-    cache_name=os.path.join(cache_dir, __program__),expire_after=500000
+    cache_name=os.path.join(cache_dir, __program__), 
+    expire_after=50000
 )
-#requests_cache.install_cache(cache_name='google_api_cache', backend='sqlite', expire_after=500000)
-#requests_cache.install_cache()
 
 app = flask.Flask(__name__)
 
