@@ -79,7 +79,7 @@ def parse():
         print(e)
         return jsonify({
             'error': True, 
-            'description': "'%s' parsing went wrong with error: '%s'" % (url, e)
+            'description': "'%s' parsing went wrong with error: '%s'" % (url, str(e))
         })
 
 @app.route('/analyse', methods=['POST'])
@@ -101,7 +101,7 @@ def analyse():
     except Exception as e:
         print(e)
         result["error"] = True
-        result["description"] = e
+        result["description"] = str(e)
 
     return jsonify(result)
 
@@ -121,14 +121,14 @@ def source_articles():
         if len(r.json()['articles']) == 0:
             result['error'] = True
             return jsonify(result)
-            
+
         article = random.choice(r.json()['articles'])
         result['url'] = article['url']
 
     except Exception as e:
         print(e)
         result['error'] = True
-        result['description'] = e
+        result['description'] = str(e)
     return jsonify(result)
 
 
