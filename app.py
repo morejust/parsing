@@ -1,8 +1,9 @@
-import flask
-import requests_cache
-import time
-import appdirs
 import os
+import time
+import flask
+import appdirs
+import requests_cache
+
 from flask import request, jsonify
 from newspaper import Article
 from urllib.parse import urlparse
@@ -10,7 +11,6 @@ from htmlTagsExtractor import extract_tags
 from factsExtractor import extract_facts
 from googleApiSentiment import get_sentiments
 from flask_cors import CORS
-import csv
 __program__ = 'google_cache'
 
 # determine platform-specific user cache directory
@@ -29,28 +29,30 @@ app = flask.Flask(__name__)
 
 CORS(app)
 
-fakes=[]
-with open('./data/fakes.csv', 'r') as f:
-    reader = csv.reader(f)
-    for row in reader:
-        # print(row[0])
-        fakes.append(str(row[0]))
-
-
 app.config["DEBUG"] = True
+
+def check_fake_source(url):
+    fakes = []
+    with open('./data/fakes.csv', 'r') as f:
+        fakes = f.readlines()
+        fakes = [f.strip() for f in fakes]
+
+    parsed_uri = urlparse(url)
+    site = '{uri.netloc}'.format(uri=parsed_uri)
+    return site in fakes
 
 @app.route('/', methods=['GET'])
 def home():
-    return '''<h1>Welcome page!</h1>'''
+    return '''<h1>AI is working! You are not...</h1>'''
 
 @app.route('/parse', methods=['GET'])
 def parse():
-    print(fakes)
     query_parameters = request.args
     url = query_parameters.get('url')
     if "clear_cache" in query_parameters:
         if query_parameters.get('clear_cache') == '1':
             requests_cache.clear()
+
     try:
         a = Article(url, keep_article_html=True)
         a.download()
@@ -78,29 +80,21 @@ def parse():
 
 @app.route('/analyse', methods=['POST'])
 def analyse():
-    fake=False
+
     jso = request.json
     url = jso['url']
     result = {'url': url, 'error': False, 'post': jso, 'fake': False}
 
     # TODO: Allow to pass the url and perform /parse and /analyse at the same time.
     jso = request.json
-    result = { 'url': url, 'error': False , 'post':jso}
+    result = {'url': url, 'error': False , 'post': jso}
     try:
         before = time.ctime(int(time.time()))
-        parsed_uri = urlparse(url)
-        site = '{uri.netloc}'.format(uri=parsed_uri)
-        print(fakes)
-        print(str(site),"Habelni")
-        for site1 in fakes:
-            # print(site1)
-            if site1==site:
-                # print("Ijo de python")
-                fake=True
+        
         tags, raw_text = extract_tags(result['post']["html"])
         result['html'] = tags
         result['post']['text'] = raw_text
-        result["fake"] = fake
+        result["fake"] = check_fake_source(url)
         result['checkFacts'] = extract_facts(result['post'])
         result['entities'] = get_sentiments(raw_text)
 
@@ -124,7 +118,7 @@ def source_articles():
     result = { 'source': source, 'error': False, 'acticles': [] }
     try:
         source_urls = ['url.com', 'url1.com', 'rul2.com']
-        result['acticles'] = [{ 'url': u } for u in source_urls]
+        result['acticles'] = [{'url': u} for u in source_urls]
 
     except Exception as e:
         print(e)
