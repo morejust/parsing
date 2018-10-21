@@ -1,6 +1,7 @@
 import os
 import time
 import flask
+import random
 import appdirs
 import requests
 import requests_cache
@@ -8,10 +9,13 @@ import requests_cache
 from flask import request, jsonify
 from newspaper import Article
 from urllib.parse import urlparse
+from flask_cors import CORS
+
 from htmlTagsExtractor import extract_tags
 from factsExtractor import extract_facts
 from googleApiSentiment import get_sentiments
-from flask_cors import CORS
+from keywordsFinder import KeywordsFinder
+
 __program__ = 'google_cache'
 
 # determine platform-specific user cache directory
@@ -25,20 +29,21 @@ requests_cache.install_cache(
     expire_after=50000
 )
 
+# flask inits
 app = flask.Flask(__name__)
-
 CORS(app)
-
 app.config["DEBUG"] = True
 
+# parsers and classifiers inits
+kf = KeywordsFinder()
+
 def check_fake_source(url):
-    fakes = []
+    site = '{uri.netloc}'.format(uri=urlparse(url))
+
     with open('./data/fakes.csv', 'r') as f:
         fakes = f.readlines()
-        fakes = [f.strip() for f in fakes]
+    fakes = [f.strip() for f in fakes]
 
-    parsed_uri = urlparse(url)
-    site = '{uri.netloc}'.format(uri=parsed_uri)
     return site in fakes
 
 @app.route('/', methods=['GET'])
@@ -49,9 +54,8 @@ def home():
 def parse():
     query_parameters = request.args
     url = query_parameters.get('url')
-    if "clear_cache" in query_parameters:
-        if query_parameters.get('clear_cache') == '1':
-            requests_cache.clear()
+    if 'clear_cache' in query_parameters and query_parameters.get('clear_cache') == '1':
+        requests_cache.clear()
 
     try:
         a = Article(url, keep_article_html=True)
@@ -80,27 +84,19 @@ def parse():
 
 @app.route('/analyse', methods=['POST'])
 def analyse():
-
     jso = request.json
     url = jso['url']
     result = {'url': url, 'error': False, 'post': jso, 'fake': False}
 
     # TODO: Allow to pass the url and perform /parse and /analyse at the same time.
-    jso = request.json
-    result = {'url': url, 'error': False , 'post': jso}
     try:
-        before = time.ctime(int(time.time()))
-        
-        tags, raw_text = extract_tags(result['post']["html"])
+        tags, raw_text = extract_tags(result['post']['html'])
         result['html'] = tags
         result['post']['text'] = raw_text
-        result["fake"] = check_fake_source(url)
+        result['fake'] = check_fake_source(url)
         result['checkFacts'] = extract_facts(result['post'])
         result['entities'] = get_sentiments(raw_text)
-
-        after = time.ctime(int(time.time()))
-
-        print("Start: {0} / End: {1}".format(before, after))
+        result['keywords'] = kf.find_keywords(raw_text)
 
     except Exception as e:
         print(e)
@@ -116,19 +112,21 @@ def source_articles():
 
     if query is None:
         return jsonify({'error': True, 'description': 'No query'})
-        
+
     result = {'q': query, 'error': False, 'url': ''}
     try:
-        qurl = 'https://newsapi.org/v2/everything?q=%s&from=2018-10-20&to=2018-10-20&sortBy=popularity&apiKey=61b5063e2cdb47d3913945c311932ab3'
-        r = requests.get(qurl % query)
-        result["url"] = r.json()["articles"][0]["url"]
+        api_token = '61b5063e2cdb47d3913945c311932ab3'  # key that was taken from mainpage
+        qurl = 'https://newsapi.org/v2/everything?q=%s&from=2018-10-20&to=2018-10-20&sortBy=popularity&apiKey=%s'
+        r = requests.get(qurl % (query, api_token))
+        article = random.choice(r.json()['articles'])
+        result['url'] = article['url']
 
     except Exception as e:
         print(e)
-        result["error"] = True
-        result["description"] = e
+        result['error'] = True
+        result['description'] = e
     return jsonify(result)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(host='0.0.0.0')
