@@ -3,8 +3,6 @@ import os
 import six
 
 from google.cloud import language
-from google.cloud.language import enums
-from google.cloud.language import types
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./google_api_cred.json"
 
@@ -15,14 +13,16 @@ def entity_sentiment_text(text):
     if isinstance(text, six.binary_type):
         text = text.decode('utf-8')
 
-    document = types.Document(
+    document = language.types.Document(
         content=text.encode('utf-8'),
-        type=enums.Document.Type.PLAIN_TEXT)
+        type=language.enums.Document.Type.PLAIN_TEXT, 
+        language='en'
+    )
 
     # Detect and send native Python encoding to receive correct word offsets.
-    encoding = enums.EncodingType.UTF32
+    encoding = language.enums.EncodingType.UTF32
     if sys.maxunicode == 65535:
-        encoding = enums.EncodingType.UTF16
+        encoding = language.enums.EncodingType.UTF16
 
     result = client.analyze_entity_sentiment(document, encoding)
     return result
