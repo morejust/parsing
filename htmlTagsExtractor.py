@@ -1,6 +1,10 @@
 import re
 
 def merge_tags(html_tags_offsets):
+    """
+        Merges html tags if they have the same offset.
+        Minds the order in the original list.
+    """
     merged = []
     done_offsets = []
     for t1 in html_tags_offsets:
@@ -22,6 +26,14 @@ def unescape_xml_tags(text):
     
 
 def extract_tags(html_string):
+    """
+        Extract html tags with offsets
+        Input: 
+            - string with raw html 
+        Output: tuple of:
+            - html tags offsets (format: offset in raw text, tag string)
+            - raw text (the original html string without tags)
+    """
     html_string = unescape_xml_tags(html_string)
     
     raw_text = ""
@@ -45,6 +57,10 @@ def extract_tags(html_string):
 
 
 def insert_tags(html_tags_offsets, raw_text):
+    """
+        Insert tags into into raw text. 
+        Used to debug extract_tags() method (look above)
+    """
     text_with_html = raw_text
     for offset, tag_text in sorted(html_tags_offsets, key=lambda x: -x[0]):
         # -1 -> remove space that was added above
