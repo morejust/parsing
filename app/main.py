@@ -2,11 +2,9 @@ import os
 import time
 import flask
 import random
-import appdirs
 import requests
 
 from flask import request, jsonify
-from newspaper import Article
 from flask_cors import CORS
 
 from parsing import get_article, populate_with_features_old
@@ -23,7 +21,6 @@ def home():
 def parse():
     query_parameters = request.args
     url = query_parameters.get('url')
-    result = {'url': url, 'error': False}
 
     try:
         article_data = get_article(url)
