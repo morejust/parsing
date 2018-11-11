@@ -29,7 +29,8 @@ RUN apk add --no-cache \
     rm -r /root/.cache
 
 # Download NLTK corporas
-RUN curl https://raw.githubusercontent.com/codelucas/newspaper/master/download_corpora.py | python3
+# RUN curl https://raw.githubusercontent.com/codelucas/newspaper/master/download_corpora.py | python3
+RUN python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt brown maxent_treebank_pos_tagger movie_reviews wordnet stopwords
 
 # Copy the Nginx global conf
 COPY nginx.conf /etc/nginx/
