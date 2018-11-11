@@ -102,7 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+.idea/
+
 google_api_cred.json
 google_api_cache.db
-.idea/workspace.xml
-google_api_cache.db
+**.DS_Store

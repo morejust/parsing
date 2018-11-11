@@ -39,6 +39,8 @@ def extract_entity_features(entity):
     features['mentions'] = []
     for mention in entity.mentions:
         f = {}
+        if mention.sentiment.score.real == 0:
+            continue
         f["offset"] = mention.text.begin_offset
         f["content"] = mention.text.content
         f["magnitude"] = mention.sentiment.magnitude.real
@@ -52,5 +54,7 @@ def get_sentiments(text):
     all_sentiments_features = []
     for entity in google_api_result.entities:
         features = extract_entity_features(entity)
+        if features["sentiment"] == 0:
+            continue
         all_sentiments_features.append(features)
     return all_sentiments_features
