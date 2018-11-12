@@ -1,0 +1,22 @@
+{
+    "sentiment_positive_google": {
+        "color": "00FF00",
+        "description": "This entity has a positive sentiment in the text."
+    },
+    "sentiment_negative_google": {
+        "color": "#FF0000",
+        "description": "This entity has a positive sentiment in the text."
+    },
+    "key_phrase": {
+        "color": "#AAF313",
+        "description": "Key phrase of the article. This should be double checked."
+    },
+    "generalization": {
+        "color": "#432F46",
+        "description": "Generalization word."
+    },
+    "journalism_cliche": {
+        "color": "#403F16",
+        "description": "Journalism cliche."
+    }
+}
