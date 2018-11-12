@@ -7,8 +7,14 @@ The development of this project started during the 2018 edition of HackUPC hacka
 ``` bash
 docker build -t morejust_parsing:latest .
 docker run -d -p 5000:80 morejust_parsing
+```
+
+## Other useful commands
+``` bash 
 docker ps
 docker logs -ft <id>
+docker tag <image_id> okhlopkov/morejust_parsing:latest
+docker push okhlopkov/morejust_parsing:latest
 ```
 
 ## Links
