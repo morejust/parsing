@@ -7,10 +7,10 @@ import requests
 from flask import request, jsonify
 from flask_cors import CORS
 
-from parsing import get_article, populate_with_features_old
+from parsing import get_article, populate_with_features_old, populate_with_features
 
 # flask inits
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, static_url_path='/static')
 CORS(app)
 
 @app.route('/', methods=['GET'])
@@ -74,16 +74,14 @@ def source_articles():
     return jsonify(result)
 
 @app.route('/v2/get', methods=['GET'])
-def get():
+def get_articles():
     query_parameters = request.args
     url = query_parameters.get('url')
 
     article = get_article(url)
-    article_with_features = populate_with_features_old(article)
+    article_with_features = populate_with_features(article)
 
     return jsonify(article_with_features)
-
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

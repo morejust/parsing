@@ -74,14 +74,41 @@ def populate_with_features(article, cache=True):
 
     features = {'url': url, 'error': False, 'article': article}
 
-    tags, raw_text = extract_tags(features['post']['html'])
+    tags, raw_text = extract_tags(article['html'])
     features['html_tags'] = tags
-    features['post']['text'] = raw_text
+    features['article']['text'] = raw_text
 
     # entity-based features
-    features['entities'] = {}
-    # TODO: think of entity format (offset, name, length, class, ...)
-    # TODO: rename offsets name 
+    features['entities'] = []
+
+    # find key phrases
+    facts = extract_facts(article)
+    features['entities'].extend({
+        'offset': e['offset'],
+        'class': 'key_phrase',
+        'content': e['content'],
+        'properties': {}
+    } for e in facts)
+
+    # find google sentiments
+    sents_google = get_sentiments(raw_text)
+    features['entities'].extend({
+        'offset': e['offset'],
+        'class': 'sentiment_positive_google' if e["sentiment"] > 0 else "sentiment_negative_google",
+        'content': e['content'],
+        'properties': {
+            'magnitude': e['magnitude'],
+            'sentiment': e['sentiment'],
+        }
+    } for m in sents_google for e in m["mentions"] if e["sentiment"] ** 2 > 0.5 ** 2)
+
+    stopwords = kf.find_keywords(raw_text)
+    features['entities'].extend({
+        'offset': e['offset'],
+        'class': e['type'],
+        'content': e['content'],
+        'properties': {}
+    } for e in stopwords)
 
     # article-based features
     features['features'] = {}
