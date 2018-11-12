@@ -31,9 +31,9 @@ def entity_sentiment_text(text):
 def extract_entity_features(entity):
     features = {}
     features["name"] = entity.name
-    features["salience"] = entity.salience.real
-    features["sentiment"] = entity.sentiment.score.real
-    features["magnitude"] = entity.sentiment.magnitude.real
+    features["salience"] = int(100 * entity.salience.real) / 100
+    features["sentiment"] = int(100 * entity.sentiment.score.real) / 100
+    features["magnitude"] = int(100 * entity.sentiment.magnitude.real) / 100
     features["type"] = "sentiment"
 
     features['mentions'] = []
@@ -43,8 +43,8 @@ def extract_entity_features(entity):
             continue
         f["offset"] = mention.text.begin_offset
         f["content"] = mention.text.content
-        f["magnitude"] = mention.sentiment.magnitude.real
-        f["sentiment"] = mention.sentiment.score.real
+        f["magnitude"] = int(100 * mention.sentiment.magnitude.real) / 100
+        f["sentiment"] = int(100 * mention.sentiment.score.real) / 100
         f["type"] = mention.type
         features['mentions'].append(f)
     return features
