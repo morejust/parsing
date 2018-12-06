@@ -7,7 +7,10 @@ import requests
 from flask import request, jsonify
 from flask_cors import CORS
 
-from parsing import get_article, populate_with_features_old, populate_with_features
+from htmlTagsExtractor import extract_tags
+from parsing import get_article
+from parsing import populate_with_features_old, populate_with_features
+from parsing import get_text_entities
 
 # flask inits
 app = flask.Flask(__name__, static_url_path='/static')
@@ -24,6 +27,10 @@ def parse():
 
     try:
         article_data = get_article(url)
+        
+        tags, raw_text = extract_tags(article_data['html'])
+        article_data["text"] = raw_text
+        article_data["html_tags"] = tags
         return jsonify(article_data)
 
     except Exception as e:
@@ -41,10 +48,20 @@ def analyse():
         print(e)
         result = {"error": True, "description": str(e)}
     return jsonify(result)
-
-@app.route('/v2/analyse', methods=['GET'])
+    
+@app.route('/v2/analyse', methods=['POST'])
 def new_analyse():
     result = populate_with_features(request.json)
+    return jsonify(result)
+
+@app.route('/v3/analyse', methods=['POST'])
+def new_new_analyse():
+    try:
+        text = request.json["text"]
+        result = get_text_entities(text)
+    except Exception as e:
+        print(e)
+        result = {"error": True, "description": str(e)}
     return jsonify(result)
 
 @app.route('/search', methods=['GET'])
@@ -57,9 +74,9 @@ def source_articles():
 
     result = {'q': query, 'error': False, 'url': ''}
     try:
-        api_token = '61b5063e2cdb47d3913945c311932ab3'  # key that was taken from mainpage
-        qurl = 'https://newsapi.org/v2/everything?q=%s&language=en&from=2018-10-20&to=2018-10-20&sortBy=popularity&apiKey=%s'
+        qurl = 'https://newsapi.org/v2/everything?q=%s&language=en&sortBy=popularity&apiKey=%s'
         r = requests.get(qurl % (query, api_token))
+        print(r.json())
         if len(r.json()['articles']) == 0:
             result['error'] = True
             return jsonify(result)
