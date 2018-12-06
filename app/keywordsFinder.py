@@ -17,7 +17,7 @@ class KeywordsFinder(object):
             lines = f.readlines()
             for line in lines[1:]:
                 w, emotion, color, orientation, sentiment, subjectivity, source = line.split(",")
-                if len(subjectivity) > 0:
+                if subjectivity == "strong":
                     self.kw[w.lower().strip()] = "subjectivity"
 
     def find_keywords(self, text):
@@ -25,10 +25,12 @@ class KeywordsFinder(object):
 
         result = []
         for w in self.kw:
-            offsets = [m.start() for m in re.finditer(w, text)]
+            # TODO: find words in subset of words, not in whole text
+            # I added spaces to find words, not part of other words
+            offsets = [m.start() for m in re.finditer(" %s " % w, text)]
             for o in offsets:
                 result.append({
-                    'offset': o,
+                    'offset': o + 1,
                     'type': self.kw[w],
                     'content': w
                 })
