@@ -65,6 +65,10 @@ def populate_with_features_old(article):
 
     return result
 
+def get_text_entities(text):
+    entities = []
+    return entities
+
 def populate_with_features(article, cache=True):
     url = article['url']
     if cache:
@@ -85,27 +89,26 @@ def populate_with_features(article, cache=True):
     facts = extract_facts(article)
     features['entities'].extend({
         'offset': e['offset'],
-        'class': 'key_phrase',
+        'type': 'key_phrase',
         'content': e['content'],
         'properties': {}
     } for e in facts)
 
-    # find google sentiments
     sents_google = get_sentiments(raw_text)
     features['entities'].extend({
         'offset': e['offset'],
-        'class': 'sentiment_positive_google' if e["sentiment"] > 0 else "sentiment_negative_google",
+        'type': 'sentiment_positive_google' if e["sentiment"] > 0 else "sentiment_negative_google",
         'content': e['content'],
         'properties': {
             'magnitude': e['magnitude'],
             'sentiment': e['sentiment'],
         }
-    } for m in sents_google for e in m["mentions"] if e["sentiment"] ** 2 > 0.5 ** 2)
+    } for m in sents_google for e in m["mentions"] if e["sentiment"] ** 2 > 0.5 ** 2)  # just not to use np.abs()
 
     stopwords = kf.find_keywords(raw_text)
     features['entities'].extend({
         'offset': e['offset'],
-        'class': e['type'],
+        'type': e['type'],
         'content': e['content'],
         'properties': {}
     } for e in stopwords)
