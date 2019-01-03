@@ -16,6 +16,11 @@ from parsing import get_text_entities
 app = flask.Flask(__name__, static_url_path='/static')
 CORS(app)
 
+# HACK: save Google API key from env vars to file
+if not os.path.isfile('google_api_cred.json') and os.getenv('GOOGLE_API_JSON'):
+    with open('google_api_cred.json', 'w') as f:
+        f.write(str(os.getenv('GOOGLE_API_JSON')))
+
 @app.route('/', methods=['GET'])
 def home():
     return '''<h1>AI is working! You are not...</h1>'''
@@ -74,6 +79,7 @@ def source_articles():
 
     result = {'q': query, 'error': False, 'url': ''}
     try:
+        api_token = os.getenv('NEWS_API_TOKEN', '') 
         qurl = 'https://newsapi.org/v2/everything?q=%s&language=en&sortBy=popularity&apiKey=%s'
         r = requests.get(qurl % (query, api_token))
         print(r.json())
