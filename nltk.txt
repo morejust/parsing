@@ -1,3 +1,8 @@
-wordnet
 pros_cons
 reuters
+punkt
+brown
+maxent_treebank_pos_tagger
+movie_reviews
+wordnet
+stopwords
