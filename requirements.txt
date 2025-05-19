@@ -5,3 +5,4 @@ newspaper3k
 google-cloud-language
 appdirs
 nltk
+lxml_html_clean

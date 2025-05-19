@@ -11,6 +11,7 @@ COPY requirements.txt /tmp/requirements.txt
 RUN apk add --no-cache \
     gcc \
     python3 \
+    py3-pip \
     python3-dev \
     bash \
     nginx \ 
@@ -21,11 +22,9 @@ RUN apk add --no-cache \
     alpine-sdk libxml2-dev libxslt-dev \
     # For Pillow
     musl-dev jpeg-dev zlib-dev openjpeg-dev && \
-    python3 -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip3 install --upgrade pip setuptools && \
-    pip3 install -r /tmp/requirements.txt && \
-    rm /etc/nginx/conf.d/default.conf && \
+    pip3 install --break-system-packages --upgrade pip setuptools && \
+    pip3 install --break-system-packages -r /tmp/requirements.txt && \
+    rm -f /etc/nginx/conf.d/default.conf && \
     rm -r /root/.cache
 
 # Download NLTK corporas
